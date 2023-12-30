@@ -5,8 +5,9 @@ const Wallet = require('./models/walletModel.js');
 const Transaction = require('./models/transactionModel.js')
 const connectDB = require('./database.js')
 const app = express();
+const cors = require('cors');
 
-
+app.use(cors()); 
 connectDB()
 app.use(express.json());
 app.use('/', walletRoutes)
