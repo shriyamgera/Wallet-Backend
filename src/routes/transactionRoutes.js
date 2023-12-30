@@ -40,7 +40,7 @@ router.post('/transact/:walletId', async (req, res) => {
         const walletId = req.params.walletId;
 
         const { amount, description } = req.body;
-        const parsedAmount = parseFloat(amount);
+        const parsedAmount = parseFloat(parseFloat(amount).toFixed(4));
 
         const wallet = await Wallet.findById(walletId);
 
@@ -51,7 +51,7 @@ router.post('/transact/:walletId', async (req, res) => {
         const transactionType = parsedAmount >= 0 ? 'CREDIT' : 'DEBIT';
         
         if(transactionType==='DEBIT' && Math.abs(parsedAmount)>wallet.balance){
-            return res.status(400).json({error: "Amount exceeds the balance"})
+            return res.status(404).json({error: "Amount exceed the balance"})
         }
 
         const newBalance = wallet.balance + parsedAmount;
