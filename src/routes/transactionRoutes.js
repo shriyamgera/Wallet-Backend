@@ -6,17 +6,23 @@ const router = express.Router();
 // GET /transactions
 router.get('/transactions', async (req, res) => {
     try {
-        const { walletId, skip = 0, limit = 10 } = req.query;
+        const { walletId, skip = 0, limit = 2, sortBy = 'date', sortOrder = 'asc' } = req.query;
+        console.log(walletId);
 
         if (!walletId) {
             return res.status(400).json({ error: 'WalletId is required.' });
         }
 
+        const sortOptions = {};
+        sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+        const transactionLength = (await Transaction.find({ walletId })).length;
+        console.log(transactionLength);
+
         const transactions = await Transaction.find({ walletId })
-            .sort({ date: -1 }) 
+            .sort(sortOptions)
             .skip(parseInt(skip))
             .limit(parseInt(limit));
-
 
         const formattedTransactions = transactions.map(transaction => ({
             id: transaction._id,
@@ -25,7 +31,9 @@ router.get('/transactions', async (req, res) => {
             balance: transaction.balance,
             description: transaction.description,
             date: transaction.date,
-            type: transaction.type
+            type: transaction.type,
+            length: transactionLength,
+            transactionLimit: limit
         }));
 
         res.status(200).json(formattedTransactions);
@@ -40,7 +48,7 @@ router.post('/transact/:walletId', async (req, res) => {
         const walletId = req.params.walletId;
 
         const { amount, description } = req.body;
-        const parsedAmount = parseFloat(parseFloat(amount).toFixed(4));
+        const parsedAmount = amount
 
         const wallet = await Wallet.findById(walletId);
 
