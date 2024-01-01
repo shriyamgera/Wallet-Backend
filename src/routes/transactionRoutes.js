@@ -6,21 +6,15 @@ const router = express.Router();
 // GET /transactions
 router.get('/transactions', async (req, res) => {
     try {
-        const { walletId, skip = 0, limit = 2, sortBy = 'date', sortOrder = 'asc' } = req.query;
+        const { walletId, skip, limit, sortBy = 'date', sortOrder = -1 } = req.query;
         console.log(walletId);
 
         if (!walletId) {
             return res.status(400).json({ error: 'WalletId is required.' });
         }
 
-        const sortOptions = {};
-        sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
-
-        const transactionLength = (await Transaction.find({ walletId })).length;
-        console.log(transactionLength);
-
         const transactions = await Transaction.find({ walletId })
-            .sort(sortOptions)
+            .sort({[sortBy]: Number(sortOrder)})
             .skip(parseInt(skip))
             .limit(parseInt(limit));
 
@@ -31,9 +25,7 @@ router.get('/transactions', async (req, res) => {
             balance: transaction.balance,
             description: transaction.description,
             date: transaction.date,
-            type: transaction.type,
-            length: transactionLength,
-            transactionLimit: limit
+            type: transaction.type
         }));
 
         res.status(200).json(formattedTransactions);
